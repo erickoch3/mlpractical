@@ -145,7 +145,7 @@ pkgs_dirs:
 
 ## Getting the Course Code
 
-The course code is available in a Git repository on GitHub: https://github.com/VICO-UoE/mlpractical
+The course code is available in a Git repository on GitHub: https://github.com/cortu01/mlpractical
 
 [Git](https://git-scm.com/) is a version control system, and [GitHub](https://github.com) hosts Git repositories. We use Git to distribute code for labs and assignments. For Git beginners, see [this guide](http://rogerdudler.github.io/git-guide/) or [this longer tutorial](https://www.atlassian.com/git/tutorials/).
 
@@ -153,12 +153,12 @@ The course code is available in a Git repository on GitHub: https://github.com/V
 
 ### Cloning the Repository
 
-**Advanced Git users:** You may create a private fork of `VICO-UoE/mlpractical` for syncing work between machines. **Do NOT create a public fork** as this risks plagiarism.
+**Advanced Git users:** You may create a private fork of `cortu01/mlpractical` for syncing work between machines. **Do NOT create a public fork** as this risks plagiarism.
 
 Clone the repository to your home directory:
 
 ```bash
-git clone https://github.com/VICO-UoE/mlpractical.git ~/mlpractical
+git clone https://github.com/cortu01/mlpractical.git ~/mlpractical
 ```
 
 Navigate to the directory:
@@ -303,7 +303,7 @@ conda clean -t -y
 
 6. **Get course code:**
 ```bash
-git clone https://github.com/VICO-UoE/mlpractical.git ~/mlpractical
+git clone https://github.com/cortu01/mlpractical.git ~/mlpractical
 cd ~/mlpractical
 git checkout mlp2025-26/lab1
 ```
