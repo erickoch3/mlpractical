@@ -21,8 +21,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/VICO-UoE/mlpractical"
-Repository = "https://github.com/VICO-UoE/mlpractical"
+Homepage = "https://github.com/cortu01/mlpractical"
+Repository = "https://github.com/cortu01/mlpractical"
 
 [tool.setuptools.packages.find]
 where = ["."]
