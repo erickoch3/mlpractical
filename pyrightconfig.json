@@ -1,0 +1,12 @@
+{
+  // Keep Pyright/Pylance in standard mode for this workspace
+  "typeCheckingMode": "basic",
+
+  // Keep noise low for typical coursework code
+  "reportMissingTypeStubs": "none",
+  "reportUnknownMemberType": "none",
+  "reportUnknownVariableType": "none",
+  "reportUnknownArgumentType": "none",
+  "reportUnknownLambdaType": "none"
+}
+

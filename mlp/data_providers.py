@@ -63,6 +63,14 @@ class DataProvider(object):
         """
         return self
 
+    def __next__(self):
+        """Python 3 iterator protocol: delegate to `next`.
+
+        Having this on the base class ensures all providers work with
+        for-loops and consumers like SGD that expect a standard iterator.
+        """
+        return self.next()
+
     def reset(self):
         """Resets the provider to the initial state to use in a new epoch."""
         self._curr_batch = 0
@@ -89,6 +97,10 @@ class DataProvider(object):
         targets_batch = self.targets[batch_slice]
         self._curr_batch += 1
         return inputs_batch, targets_batch
+    
+    def len(self):
+        """Returns the number of batches per epoch."""
+        return self.num_batches
 
 
 class MNISTDataProvider(DataProvider):
@@ -109,9 +121,13 @@ class MNISTDataProvider(DataProvider):
             shuffle_order (bool): Whether to randomly permute the order of
                 the data before each epoch.
             rng (RandomState): A seeded random number generator.
+        
+        Methods:
+            next(): returns next data batch or raises `StopIteration` if at end.
+                data is provided as a tuple of (inputs, labels)
         """
         # check a valid which_set was provided
-        assert which_set in ['train', 'valid', 'eval'], (
+        assert which_set in ['train', 'valid', 'eval', 'test'], (
             'Expected which_set to be either train, valid or eval. '
             'Got {0}'.format(which_set)
         )
@@ -133,15 +149,12 @@ class MNISTDataProvider(DataProvider):
         super(MNISTDataProvider, self).__init__(
             inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
 
-    # def next(self):
-    #    """Returns next data batch or raises `StopIteration` if at end."""
-    #    inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
-    #    return inputs_batch, self.to_one_of_k(targets_batch)
-    
-    def __next__(self):
-        return self.next()
+    def next(self):
+       """Returns next data batch or raises `StopIteration` if at end."""
+       inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
+       return inputs_batch, self.to_one_of_k(targets_batch)
 
-    def to_one_of_k(self, int_targets):
+    def to_one_of_k(self, int_targets) -> np.ndarray:
         """Converts integer coded class target to 1 of K coded targets.
 
         Args:
@@ -156,7 +169,10 @@ class MNISTDataProvider(DataProvider):
             to zero except for the column corresponding to the correct class
             which is equal to one.
         """
-        raise NotImplementedError()
+        one_hot_array = np.zeros((int_targets.shape[0], self.num_classes))
+        for i in range(int_targets.shape[0]):
+            one_hot_array[i, int_targets[i]] = 1
+        return one_hot_array
 
 
 class MetOfficeDataProvider(DataProvider):
@@ -164,7 +180,7 @@ class MetOfficeDataProvider(DataProvider):
 
     def __init__(self, window_size, batch_size=10, max_num_batches=-1,
                 shuffle_order=True, rng=None):
-        """Create a new Met Offfice data provider object.
+        """Create a new Met Office data provider object.
 
         Args:
             window_size (int): Size of windows to split weather time series
@@ -188,21 +204,29 @@ class MetOfficeDataProvider(DataProvider):
             'Data file does not exist at expected path: ' + data_path
         )
         #TODO: load raw data from text file
+        data = np.loadtxt(data_path, skiprows=3)
+        data = data[:, 2:]
         
         #TODO: filter out all missing datapoints and flatten to a vector
+        data = data[data != -99.99].flatten()
+        print(f"Flattened to vector of shape: {data.shape}")
         
         #TODO: normalise data to zero mean, unit standard deviation
+        data = (data - np.mean(data)) / np.std(data)
 
         #TODO: convert from flat sequence to windowed data
+        windowed_data = np.array([(data[i:i+window_size]) for i in range(len(data) - window_size+1)])
+        print(f"Created windowed data of shape: {windowed_data.shape}")
 
         #TODO: separate into inputs and targets
         # inputs are the first (window_size - 1) entries in windows
-        # inputs = ...
+        inputs = windowed_data[:, :-1]
         # targets are the last entries in windows
-        # targets = ...
+        targets = windowed_data[:, -1]
         
         # initialise base class with inputs and targets arrays (uncomment below)
-        # super(MetOfficeDataProvider, self).__init__(
-        #     inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
+        super(MetOfficeDataProvider, self).__init__(
+            inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
+    
     def __next__(self):
             return self.next()

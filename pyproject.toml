@@ -17,7 +17,9 @@ requires-python = ">=3.8"
 dependencies = [
     "numpy",
     "scipy",
-    "matplotlib"
+    "matplotlib",
+    "scikit-learn",
+    "pytorch"
 ]
 
 [project.urls]
@@ -27,3 +29,7 @@ Repository = "https://github.com/cortu01/mlpractical"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["mlp*"]
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py", "*_test.py", "*_tests.py"]
+testpaths = ["tests"]

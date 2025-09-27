@@ -1,0 +1,13 @@
+{
+  // Use Pylance with standard (non-strict) type checking
+  "python.languageServer": "Pylance",
+  "python.analysis.typeCheckingMode": "basic",
+
+  // Limit analysis to workspace files (fewer false positives from site-packages)
+  "python.analysis.diagnosticMode": "workspace",
+
+  // Common quality-of-life analysis settings
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.indexing": true
+}
+
