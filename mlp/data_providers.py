@@ -54,21 +54,11 @@ class DataProvider(object):
         self.reset()
 
     def __iter__(self):
-        """Implements Python iterator interface.
-
-        This should return an object implementing a `next` method which steps
-        through a sequence returning one element at a time and raising
-        `StopIteration` when at the end of the sequence. Here the object
-        returned is the DataProvider itself.
-        """
+        """Implements Python iterator interface."""
         return self
 
     def __next__(self):
-        """Python 3 iterator protocol: delegate to `next`.
-
-        Having this on the base class ensures all providers work with
-        for-loops and consumers like SGD that expect a standard iterator.
-        """
+        """Python 3 iterator protocol: delegate to `next`."""
         return self.next()
 
     def reset(self):
@@ -97,7 +87,7 @@ class DataProvider(object):
         targets_batch = self.targets[batch_slice]
         self._curr_batch += 1
         return inputs_batch, targets_batch
-    
+
     def len(self):
         """Returns the number of batches per epoch."""
         return self.num_batches
@@ -111,8 +101,8 @@ class MNISTDataProvider(DataProvider):
         """Create a new MNIST data provider object.
 
         Args:
-            which_set: One of 'train', 'valid' or 'eval'. Determines which
-                portion of the MNIST data this object should provide.
+            which_set: One of 'train', 'valid', 'eval' or 'test'. Determines
+                which portion of the MNIST data this object should provide.
             batch_size (int): Number of data points to include in each batch.
             max_num_batches (int): Maximum number of batches to iterate over
                 in an epoch. If `max_num_batches * batch_size > num_data` then
@@ -121,14 +111,14 @@ class MNISTDataProvider(DataProvider):
             shuffle_order (bool): Whether to randomly permute the order of
                 the data before each epoch.
             rng (RandomState): A seeded random number generator.
-        
+
         Methods:
             next(): returns next data batch or raises `StopIteration` if at end.
-                data is provided as a tuple of (inputs, labels)
+                Data is provided as a tuple of (inputs, labels)
         """
         # check a valid which_set was provided
         assert which_set in ['train', 'valid', 'eval', 'test'], (
-            'Expected which_set to be either train, valid or eval. '
+            'Expected which_set to be one of train, valid, eval or test. '
             'Got {0}'.format(which_set)
         )
         self.which_set = which_set
@@ -150,43 +140,29 @@ class MNISTDataProvider(DataProvider):
             inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
 
     def next(self):
-       """Returns next data batch or raises `StopIteration` if at end."""
-       inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
-       return inputs_batch, self.to_one_of_k(targets_batch)
+        """Returns next data batch or raises `StopIteration` if at end."""
+        inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
+        return inputs_batch, self.to_one_of_k(targets_batch)
 
     def to_one_of_k(self, int_targets) -> np.ndarray:
-        """Converts integer coded class target to 1 of K coded targets.
-
-        Args:
-            int_targets (ndarray): Array of integer coded class targets (i.e.
-                where an integer from 0 to `num_classes` - 1 is used to
-                indicate which is the correct class). This should be of shape
-                (num_data,).
-
-        Returns:
-            Array of 1 of K coded targets i.e. an array of shape
-            (num_data, num_classes) where for each row all elements are equal
-            to zero except for the column corresponding to the correct class
-            which is equal to one.
-        """
-        one_hot_array = np.zeros((int_targets.shape[0], self.num_classes))
-        for i in range(int_targets.shape[0]):
-            one_hot_array[i, int_targets[i]] = 1
-        return one_hot_array
+        """Converts integer coded class target to 1 of K coded targets."""
+        one_of_k_targets = np.zeros((int_targets.shape[0], self.num_classes))
+        one_of_k_targets[np.arange(int_targets.shape[0]), int_targets] = 1
+        return one_of_k_targets
 
 
 class MetOfficeDataProvider(DataProvider):
     """South Scotland Met Office weather data provider."""
 
     def __init__(self, window_size, batch_size=10, max_num_batches=-1,
-                shuffle_order=True, rng=None):
+                 shuffle_order=True, rng=None):
         """Create a new Met Office data provider object.
 
         Args:
             window_size (int): Size of windows to split weather time series
-            data into. The constructed input features will be the first
-            `window_size - 1` entries in each window and the target outputs
-            the last entry in each window.
+               data into. The constructed input features will be the first
+               `window_size - 1` entries in each window and the target outputs
+               the last entry in each window.
             batch_size (int): Number of data points to include in each batch.
             max_num_batches (int): Maximum number of batches to iterate over
                 in an epoch. If `max_num_batches * batch_size > num_data` then
@@ -196,37 +172,75 @@ class MetOfficeDataProvider(DataProvider):
                 the data before each epoch.
             rng (RandomState): A seeded random number generator.
         """
-        self.window_size = window_size
         assert window_size > 1, 'window_size must be at least 2.'
+        self.window_size = window_size
         data_path = os.path.join(
             os.environ['MLP_DATA_DIR'], 'HadSSP_daily_qc.txt')
         assert os.path.isfile(data_path), (
             'Data file does not exist at expected path: ' + data_path
         )
-        #TODO: load raw data from text file
-        data = np.loadtxt(data_path, skiprows=3)
-        data = data[:, 2:]
-        
-        #TODO: filter out all missing datapoints and flatten to a vector
-        data = data[data != -99.99].flatten()
-        print(f"Flattened to vector of shape: {data.shape}")
-        
-        #TODO: normalise data to zero mean, unit standard deviation
-        data = (data - np.mean(data)) / np.std(data)
-
-        #TODO: convert from flat sequence to windowed data
-        windowed_data = np.array([(data[i:i+window_size]) for i in range(len(data) - window_size+1)])
-        print(f"Created windowed data of shape: {windowed_data.shape}")
-
-        #TODO: separate into inputs and targets
-        # inputs are the first (window_size - 1) entries in windows
-        inputs = windowed_data[:, :-1]
-        # targets are the last entries in windows
-        targets = windowed_data[:, -1]
-        
-        # initialise base class with inputs and targets arrays (uncomment below)
+        raw = np.loadtxt(data_path, skiprows=3, usecols=range(2, 32))
+        # filter out all missing datapoints and flatten to a vector
+        filtered = raw[raw >= 0].flatten()
+        # normalise data to zero mean, unit standard deviation
+        mean = np.mean(filtered)
+        std = np.std(filtered)
+        normalised = (filtered - mean) / std
+        # create a view on to array corresponding to a rolling window
+        shape = (normalised.shape[-1] - self.window_size + 1, self.window_size)
+        strides = normalised.strides + (normalised.strides[-1],)
+        windowed = np.lib.stride_tricks.as_strided(
+            normalised, shape=shape, strides=strides)
+        # inputs are first (window_size - 1) entries in windows
+        inputs = windowed[:, :-1]
+        # targets are last entry in windows
+        targets = windowed[:, -1]
         super(MetOfficeDataProvider, self).__init__(
             inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
-    
-    def __next__(self):
-            return self.next()
+
+
+class CCPPDataProvider(DataProvider):
+
+    def __init__(self, which_set='train', input_dims=None, batch_size=10,
+                 max_num_batches=-1, shuffle_order=True, rng=None):
+        """Create a new Combined Cycle Power Plant data provider object.
+
+        Args:
+            which_set: One of 'train' or 'valid'. Determines which portion of
+                data this object should provide.
+            input_dims: Which of the four input dimension to use. If `None` all
+                are used. If an iterable of integers are provided (consisting
+                of a subset of {0, 1, 2, 3}) then only the corresponding
+                input dimensions are included.
+            batch_size (int): Number of data points to include in each batch.
+            max_num_batches (int): Maximum number of batches to iterate over
+                in an epoch. If `max_num_batches * batch_size > num_data` then
+                only as many batches as the data can be split into will be
+                used. If set to -1 all of the data will be used.
+            shuffle_order (bool): Whether to randomly permute the order of
+                the data before each epoch.
+            rng (RandomState): A seeded random number generator.
+        """
+        data_path = os.path.join(
+            os.environ['MLP_DATA_DIR'], 'ccpp_data.npz')
+        assert os.path.isfile(data_path), (
+            'Data file does not exist at expected path: ' + data_path
+        )
+        # check a valid which_set was provided
+        assert which_set in ['train', 'valid'], (
+            'Expected which_set to be either train or valid '
+            'Got {0}'.format(which_set)
+        )
+        # check input_dims are valid
+        if input_dims is not None:
+            input_dims = set(input_dims)
+            assert input_dims.issubset({0, 1, 2, 3}), (
+                'input_dims should be a subset of {0, 1, 2, 3}'
+            )
+        loaded = np.load(data_path)
+        inputs = loaded[which_set + '_inputs']
+        if input_dims is not None:
+            inputs = inputs[:, list(input_dims)]
+        targets = loaded[which_set + '_targets']
+        super(CCPPDataProvider, self).__init__(
+            inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
