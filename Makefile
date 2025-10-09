@@ -52,7 +52,7 @@ install: env
 # Optional: CPU-only PyTorch via the pytorch channel
 install-torch: env
 	@echo "Installing PyTorch (CPU-only) into env '$(CONDA_ENV_NAME)'..."
-	@$(CONDA) install -y -n $(CONDA_ENV_NAME) pytorch torchvision torchaudio cpuonly -c pytorch
+	@$(CONDA) install -y -n $(CONDA_ENV_NAME) torch torchvision torchaudio cpuonly -c torch
 	@echo "PyTorch install complete."
 
 # Install activation hooks to set ML_DATA_DIR/MLP_DATA_DIR on conda activate

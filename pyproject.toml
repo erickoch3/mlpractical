@@ -19,7 +19,8 @@ dependencies = [
     "scipy",
     "matplotlib",
     "scikit-learn",
-    "pytorch"
+    "torch",
+    "pandas",
 ]
 
 [project.urls]

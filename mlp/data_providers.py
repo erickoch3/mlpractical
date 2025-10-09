@@ -10,6 +10,7 @@ import gzip
 import numpy as np
 import os
 from mlp import DEFAULT_SEED
+from mlp.utils import ensure_mlp_data_dir
 
 
 class DataProvider(object):
@@ -125,11 +126,13 @@ class MNISTDataProvider(DataProvider):
         self.num_classes = 10
         # construct path to data using os.path.join to ensure the correct path
         # separator for the current platform / OS is used
-        # MLP_DATA_DIR environment variable should point to the data directory
-        data_path = os.path.join(
-            os.environ['MLP_DATA_DIR'], 'mnist-{0}.npz'.format(which_set))
+        # Locate the data directory, falling back to the repository data/ folder
+        data_dir = ensure_mlp_data_dir(
+            required_files=['mnist-{0}.npz'.format(which_set)]
+        )
+        data_path = data_dir / 'mnist-{0}.npz'.format(which_set)
         assert os.path.isfile(data_path), (
-            'Data file does not exist at expected path: ' + data_path
+            'Data file does not exist at expected path: ' + str(data_path)
         )
         # load data from compressed numpy file
         loaded = np.load(data_path)
@@ -174,10 +177,10 @@ class MetOfficeDataProvider(DataProvider):
         """
         assert window_size > 1, 'window_size must be at least 2.'
         self.window_size = window_size
-        data_path = os.path.join(
-            os.environ['MLP_DATA_DIR'], 'HadSSP_daily_qc.txt')
+        data_dir = ensure_mlp_data_dir(required_files=['HadSSP_daily_qc.txt'])
+        data_path = data_dir / 'HadSSP_daily_qc.txt'
         assert os.path.isfile(data_path), (
-            'Data file does not exist at expected path: ' + data_path
+            'Data file does not exist at expected path: ' + str(data_path)
         )
         raw = np.loadtxt(data_path, skiprows=3, usecols=range(2, 32))
         # filter out all missing datapoints and flatten to a vector
@@ -221,10 +224,10 @@ class CCPPDataProvider(DataProvider):
                 the data before each epoch.
             rng (RandomState): A seeded random number generator.
         """
-        data_path = os.path.join(
-            os.environ['MLP_DATA_DIR'], 'ccpp_data.npz')
+        data_dir = ensure_mlp_data_dir(required_files=['ccpp_data.npz'])
+        data_path = data_dir / 'ccpp_data.npz'
         assert os.path.isfile(data_path), (
-            'Data file does not exist at expected path: ' + data_path
+            'Data file does not exist at expected path: ' + str(data_path)
         )
         # check a valid which_set was provided
         assert which_set in ['train', 'valid'], (

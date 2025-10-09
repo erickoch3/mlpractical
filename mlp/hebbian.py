@@ -1,20 +1,7 @@
 from __future__ import annotations
 
-import os
-from pathlib import Path
 import numpy as np
-
-
-def ensure_mlp_data_dir() -> Path:
-    if os.environ.get('MLP_DATA_DIR'):
-        return Path(os.environ['MLP_DATA_DIR'])
-    here = Path.cwd().resolve()
-    for p in [here] + list(here.parents):
-        candidate = p / 'data'
-        if (candidate / 'mnist-train.npz').exists():
-            os.environ['MLP_DATA_DIR'] = str(candidate)
-            return candidate
-    raise RuntimeError('Could not locate data directory with mnist-*.npz')
+from mlp.utils import ensure_mlp_data_dir
 
 
 def scale01(x: np.ndarray) -> np.ndarray:
@@ -134,4 +121,3 @@ class TwoLayerHebbianSNN:
         # Clip
         np.clip(self.W1, -1.0, 1.0, out=self.W1)
         np.clip(self.W2, -1.0, 1.0, out=self.W2)
-
