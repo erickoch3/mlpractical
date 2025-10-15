@@ -35,23 +35,24 @@ class GradientDescentLearningRule(object):
                 if set too small learning will proceed very slowly.
 
         """
-        assert learning_rate > 0., 'learning_rate should be positive.'
+        assert learning_rate > 0.0, "learning_rate should be positive."
+        self.params = None
         self.learning_rate = learning_rate
 
     def initialise(self, params):
-        """Initialises the state of the learning rule for a set or parameters.
+        """Initializes the state of the learning rule for a set or parameters.
 
         This must be called before `update_params` is first called.
 
         Args:
-            params: A list of the parameters to be optimised. Note these will
+            params: A list of the parameters to be optimized. Note these will
                 be updated *in-place* to avoid reallocating arrays on each
                 update.
         """
         self.params = params
 
     def reset(self):
-        """Resets any additional state variables to their intial values.
+        """Resets any additional state variables to their initial values.
 
         For this learning rule there are no additional state variables so we
         do nothing here.
@@ -69,6 +70,9 @@ class GradientDescentLearningRule(object):
                 with respect to each of the parameters passed to `initialise`
                 previously, with this list expected to be in the same order.
         """
+        assert (
+            self.params is not None
+        ), "Must call `initialise` before calling `update_params`."
         for param, grad in zip(self.params, grads_wrt_params):
             param -= self.learning_rate * grad
 
@@ -96,7 +100,7 @@ class MomentumLearningRule(GradientDescentLearningRule):
         """Creates a new learning rule object.
 
         Args:
-            learning_rate: A postive scalar to scale gradient updates to the
+            learning_rate: A positive scalar to scale gradient updates to the
                 parameters by. This needs to be carefully set - if too large
                 the learning dynamic will be unstable and may diverge, while
                 if set too small learning will proceed very slowly.
@@ -117,9 +121,9 @@ class MomentumLearningRule(GradientDescentLearningRule):
                 by definition zero.
         """
         super(MomentumLearningRule, self).__init__(learning_rate)
-        assert mom_coeff >= 0. and mom_coeff <= 1., (
-            'mom_coeff should be in the range [0, 1].'
-        )
+        assert (
+            mom_coeff >= 0.0 and mom_coeff <= 1.0
+        ), "mom_coeff should be in the range [0, 1]."
         self.mom_coeff = mom_coeff
 
     def initialise(self, params):
@@ -143,7 +147,7 @@ class MomentumLearningRule(GradientDescentLearningRule):
         For this learning rule this corresponds to zeroing all the momenta.
         """
         for mom in zip(self.moms):
-            mom *= 0.
+            mom *= 0.0
 
     def update_params(self, grads_wrt_params):
         """Applies a single update to all parameters.

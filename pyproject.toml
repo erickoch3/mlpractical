@@ -21,6 +21,7 @@ dependencies = [
     "scikit-learn",
     "torch",
     "pandas",
+    "wandb"
 ]
 
 [project.urls]

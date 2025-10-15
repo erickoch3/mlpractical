@@ -9,7 +9,7 @@ CONDA_ENV_NAME ?= mlp
 PYTHON_VERSION ?= 3.12
 
 # Repo/data locations (override if your layout differs)
-REPO_ROOT ?= $(HOME)/repos/mlpractical
+REPO_ROOT ?= $(HOME)/repos/mlp
 ML_DATA_DIR ?= $(REPO_ROOT)/data
 
 # Helper to run commands inside the environment without interactive activation

@@ -19,7 +19,7 @@ import mlp.initialisers as init
 class Layer(object):
     """Abstract class defining the interface for a layer."""
 
-    def fprop(self, inputs):
+    def fprop(self, inputs: np.ndarray) -> np.ndarray:
         """Forward propagates activations through the layer transformation.
 
         Args:
@@ -30,7 +30,9 @@ class Layer(object):
         """
         raise NotImplementedError()
 
-    def bprop(self, inputs, outputs, grads_wrt_outputs):
+    def bprop(
+        self, inputs: np.ndarray, outputs: np.ndarray, grads_wrt_outputs: np.ndarray
+    ) -> np.ndarray:
         """Back propagates gradients through a layer.
 
         Given gradients with respect to the outputs of the layer calculates the
@@ -95,9 +97,13 @@ class AffineLayer(LayerWithParameters):
     This layer is parameterised by a weight matrix and bias vector.
     """
 
-    def __init__(self, input_dim, output_dim,
-                 weights_initialiser=init.UniformInit(-0.1, 0.1),
-                 biases_initialiser=init.ConstantInit(0.)):
+    def __init__(
+        self,
+        input_dim,
+        output_dim,
+        weights_initialiser=init.UniformInit(-0.1, 0.1),
+        biases_initialiser=init.ConstantInit(0.0),
+    ):
         """Initialises a parameterised affine layer.
 
         Args:
@@ -110,6 +116,12 @@ class AffineLayer(LayerWithParameters):
         self.output_dim = output_dim
         self.weights = weights_initialiser((self.output_dim, self.input_dim))
         self.biases = biases_initialiser(self.output_dim)
+        print(
+            "Initialized weights with mean {0:.4f} and std {1:.4f}".format(
+                self.weights.mean(), self.weights.std()
+            )
+        )
+        print("Weights sample: ", self.weights.flatten()[:10])
 
     def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
@@ -172,8 +184,9 @@ class AffineLayer(LayerWithParameters):
         self.biases = values[1]
 
     def __repr__(self):
-        return 'AffineLayer(input_dim={0}, output_dim={1})'.format(
-            self.input_dim, self.output_dim)
+        return "AffineLayer(input_dim={0}, output_dim={1})".format(
+            self.input_dim, self.output_dim
+        )
 
 
 class SigmoidLayer(Layer):
@@ -191,7 +204,7 @@ class SigmoidLayer(Layer):
         Returns:
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
-        return 1. / (1. + np.exp(-inputs))
+        return 1.0 / (1.0 + np.exp(-inputs))
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -210,10 +223,10 @@ class SigmoidLayer(Layer):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        return grads_wrt_outputs * outputs * (1. - outputs)
+        return grads_wrt_outputs * outputs * (1.0 - outputs)
 
     def __repr__(self):
-        return 'SigmoidLayer'
+        return "SigmoidLayer"
 
 
 class SoftmaxLayer(Layer):
@@ -252,8 +265,9 @@ class SoftmaxLayer(Layer):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        return (outputs * (grads_wrt_outputs -
-                           (grads_wrt_outputs * outputs).sum(-1)[:, None]))
+        return outputs * (
+            grads_wrt_outputs - (grads_wrt_outputs * outputs).sum(-1)[:, None]
+        )
 
     def __repr__(self):
-        return 'SoftmaxLayer'
+        return "SoftmaxLayer"

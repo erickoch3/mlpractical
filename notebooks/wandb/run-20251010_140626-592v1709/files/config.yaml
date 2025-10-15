@@ -1,0 +1,89 @@
+_wandb:
+    value:
+        cli_version: 0.22.2
+        e:
+            v22o4doom4d3djsficx6zc9sliacbgch:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 38
+                    memoryGb: 32
+                    name: Apple M2 Max
+                    pcpuCores: 8
+                    ramTotalBytes: "34359738368"
+                    swapTotalBytes: "6442450944"
+                codePath: notebooks/03b_extended_pytorch_tests.ipynb
+                codePathLocal: 03b_extended_pytorch_tests.ipynb
+                cpu_count: 12
+                cpu_count_logical: 12
+                disk:
+                    /:
+                        total: "994662584320"
+                        used: "538337677312"
+                email: ericwkoch@gmail.com
+                executable: /usr/local/anaconda3/envs/mlp/bin/python
+                git:
+                    commit: d2a4a86edece45df4d717680d0d88921295bdfb0
+                    remote: https://github.com/erickoch3/mlpractical.git
+                host: Erics-MacBook-Pro-1267.local
+                memory:
+                    total: "34359738368"
+                os: macOS-26.0.1-arm64-arm-64bit
+                program: /Users/ewkoch/repos/mlp/notebooks/03b_extended_pytorch_tests.ipynb
+                python: CPython 3.12.11
+                root: /Users/ewkoch/repos/mlp/notebooks
+                startedAt: "2025-10-10T13:06:26.042593Z"
+                writerId: v22o4doom4d3djsficx6zc9sliacbgch
+        m: []
+        python_version: 3.12.11
+        t:
+            "1":
+                - 1
+                - 41
+            "2":
+                - 1
+                - 41
+            "3":
+                - 1
+                - 2
+                - 13
+                - 14
+                - 16
+            "4": 3.12.11
+            "5": 0.22.2
+            "8":
+                - 1
+            "12": 0.22.2
+            "13": darwin-arm64
+augment:
+    value: true
+batch_size:
+    value: 256
+data_dir:
+    value: null
+dropout:
+    value: 0.2
+epochs:
+    value: 20
+gradient_clip:
+    value: 1
+hidden_units:
+    value:
+        - 1024
+        - 512
+        - 256
+label_smoothing:
+    value: 0.05
+learning_rate:
+    value: 0.005
+max_lr:
+    value: 0.03
+mixup_alpha:
+    value: 0.2
+run_name:
+    value: gelu_bn_dropout
+valid_split:
+    value: 8000
+wandb_project:
+    value: mlp-mnist-extended
+weight_decay:
+    value: 0.0001
