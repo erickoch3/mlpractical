@@ -1,0 +1,6 @@
+{
+  "extraPaths": [
+    "/usr/local/anaconda3/lib/python3.11/site-packages",
+    "/Users/ewkoch/.local/lib/python3.11/site-packages"
+  ]
+}

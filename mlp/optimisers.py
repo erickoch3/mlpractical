@@ -5,12 +5,17 @@ This module contains objects implementing (batched) stochastic gradient descent
 based optimisation of models.
 """
 
-import time
 import logging
+import time
 from collections import OrderedDict
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
 import numpy as np
 import tqdm
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from numpy.typing import NDArray
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +23,16 @@ logger = logging.getLogger(__name__)
 class Optimiser(object):
     """Basic model optimiser."""
 
-    def __init__(self, model, error, learning_rule, train_dataset,
-                 valid_dataset=None, data_monitors=None, notebook=False):
+    def __init__(
+        self,
+        model: Any,
+        error: Any,
+        learning_rule: Any,
+        train_dataset: Any,
+        valid_dataset: Optional[Any] = None,
+        data_monitors: Optional[Dict[str, Callable]] = None,
+        notebook: bool = False,
+    ) -> None:
         """Create a new optimiser instance.
 
         Args:
@@ -41,7 +54,7 @@ class Optimiser(object):
         self.learning_rule.initialise(self.model.params)
         self.train_dataset = train_dataset
         self.valid_dataset = valid_dataset
-        self.data_monitors = OrderedDict([('error', error)])
+        self.data_monitors: OrderedDict = OrderedDict([("error", error)])
         if data_monitors is not None:
             self.data_monitors.update(data_monitors)
         self.notebook = notebook
@@ -49,11 +62,11 @@ class Optimiser(object):
             self.tqdm_progress = tqdm.tqdm_notebook
         else:
             self.tqdm_progress = tqdm.tqdm
-            
-        self.all_grads = []
-        self.layers = []
 
-    def do_training_epoch(self):
+        self.all_grads: List[List[float]] = []
+        self.layers: List[List[str]] = []
+
+    def do_training_epoch(self) -> None:
         """Do a single training epoch.
 
         This iterates through all batches in training dataset, for each
@@ -61,16 +74,19 @@ class Optimiser(object):
         respect to all the model parameters and then updates the model
         parameters according to the learning rule.
         """
-        layers = []
-        all_grads = []
+        layers: List[str] = []
+        all_grads: List[float] = []
         obtained_grads = False
-        with self.tqdm_progress(total=self.train_dataset.num_batches) as train_progress_bar:
+        with self.tqdm_progress(
+            total=self.train_dataset.num_batches
+        ) as train_progress_bar:
             train_progress_bar.set_description("Ep Prog")
             for inputs_batch, targets_batch in self.train_dataset:
                 activations = self.model.fprop(inputs_batch)
                 grads_wrt_outputs = self.error.grad(activations[-1], targets_batch)
                 grads_wrt_params = self.model.grads_wrt_params(
-                    activations, grads_wrt_outputs)
+                    activations, grads_wrt_outputs
+                )
                 self.learning_rule.update_params(grads_wrt_params)
                 train_progress_bar.update(1)
                 if not obtained_grads:
@@ -78,19 +94,27 @@ class Optimiser(object):
                     all_grads.extend(grads_wrt_params)
                     for i, grad in enumerate(all_grads):
                         all_grads[i] = np.abs(grad).mean()
-                    layers.extend([f"Layer_{i+1}" for i in range(len(grads_wrt_params))])
+                    layers.extend(
+                        [f"Layer_{i+1}" for i in range(len(grads_wrt_params))]
+                    )
                     obtained_grads = True
         self.layers.append(layers)
         self.all_grads.append(all_grads)
 
-    def plot_grad_flow(self):
+    def plot_grad_flow(self) -> Tuple[Figure, Axes]:
+        """Plots the gradient across epochs.
+
+        Returns:
+            Tuple[Figure, Axes]: a plot of the gradient flow across epochs.
+        """
         all_grads = self.all_grads
-        layers = self.layers[0] if self.layers else []  # Take first epoch's layers as they don't change
-        
-        
+        layers = (
+            self.layers[0] if self.layers else []
+        )  # Take first epoch's layers as they don't change
+
         # Plot gradient flow for each epoch
         fig, ax = plt.subplots(figsize=(10, 6))
-        
+
         for epoch_idx, epoch_grads in enumerate(all_grads):
             ax.plot(epoch_grads, alpha=0.3, color="b")
 
@@ -103,10 +127,10 @@ class Optimiser(object):
         ax.set_title("Gradient flow")
         ax.grid(True)
         plt.tight_layout()
-        
+
         return fig, ax
 
-    def eval_monitors(self, dataset, label):
+    def eval_monitors(self, dataset: Any, label: str) -> OrderedDict:
         """Evaluates the monitors for the given dataset.
 
         Args:
@@ -116,18 +140,20 @@ class Optimiser(object):
         Returns:
             OrderedDict of monitor values evaluated on dataset.
         """
-        data_mon_vals = OrderedDict([(key + label, 0.) for key
-                                     in self.data_monitors.keys()])
+        data_mon_vals = OrderedDict(
+            [(key + label, 0.0) for key in self.data_monitors.keys()]
+        )
         for inputs_batch, targets_batch in dataset:
             activations = self.model.fprop(inputs_batch, evaluation=True)
             for key, data_monitor in self.data_monitors.items():
                 data_mon_vals[key + label] += data_monitor(
-                    activations[-1], targets_batch)
+                    activations[-1], targets_batch
+                )
         for key, data_monitor in self.data_monitors.items():
             data_mon_vals[key + label] /= dataset.num_batches
         return data_mon_vals
 
-    def get_epoch_stats(self):
+    def get_epoch_stats(self) -> OrderedDict:
         """Computes training statistics for an epoch.
 
         Returns:
@@ -135,13 +161,12 @@ class Optimiser(object):
             values corresponding to the value of the statistic.
         """
         epoch_stats = OrderedDict()
-        epoch_stats.update(self.eval_monitors(self.train_dataset, '(train)'))
+        epoch_stats.update(self.eval_monitors(self.train_dataset, "(train)"))
         if self.valid_dataset is not None:
-            epoch_stats.update(self.eval_monitors(
-                self.valid_dataset, '(valid)'))
+            epoch_stats.update(self.eval_monitors(self.valid_dataset, "(valid)"))
         return epoch_stats
 
-    def log_stats(self, epoch, epoch_time, stats):
+    def log_stats(self, epoch: int, epoch_time: float, stats: OrderedDict) -> None:
         """Outputs stats for a training epoch to a logger.
 
         Args:
@@ -149,16 +174,21 @@ class Optimiser(object):
             epoch_time: Time taken in seconds for the epoch to complete.
             stats: Monitored stats for the epoch.
         """
-        logger.info('Epoch {0}: {1:.1f}s to complete\n    {2}'.format(
-            epoch, epoch_time,
-            ', '.join(['{}={:.2e}'.format(k, v) for (k, v) in stats.items()])
-        ))
+        stats_str = ", ".join([f"{k}={round(v,2)}" for (k, v) in stats.items()])
+        logger.info(
+            "Epoch %d: %.2fs to complete\n    %s",
+            epoch,
+            epoch_time,
+            stats_str,
+        )
 
-    def train(self, num_epochs, stats_interval=5):
+    def train(
+        self, num_epochs: int, stats_interval: int = 5
+    ) -> Tuple[NDArray[np.floating], Dict[str, int], float]:
         """Trains a model for a set number of epochs.
 
         Args:
-            num_epochs: Number of epochs (complete passes through trainin
+            num_epochs: Number of epochs (complete passes through training
                 dataset) to train for.
             stats_interval: Training statistics will be recorded and logged
                 every `stats_interval` epochs.
@@ -169,13 +199,14 @@ class Optimiser(object):
             recorded to their column index in the array.
         """
         start_train_time = time.time()
-        run_stats = [list(self.get_epoch_stats().values())]
+        stats = self.get_epoch_stats()
+        run_stats = [list(stats.values())]
         with self.tqdm_progress(total=num_epochs) as progress_bar:
             progress_bar.set_description("Exp Prog")
             for epoch in range(1, num_epochs + 1):
                 start_time = time.time()
                 self.do_training_epoch()
-                epoch_time = time.time()- start_time
+                epoch_time = time.time() - start_time
                 if epoch % stats_interval == 0:
                     stats = self.get_epoch_stats()
                     self.log_stats(epoch, epoch_time, stats)
@@ -183,5 +214,8 @@ class Optimiser(object):
                 progress_bar.update(1)
         finish_train_time = time.time()
         total_train_time = finish_train_time - start_train_time
-        return np.array(run_stats), {k: i for i, k in enumerate(stats.keys())}, total_train_time
-
+        return (
+            np.array(run_stats),
+            {k: i for i, k in enumerate(stats.keys())},
+            total_train_time,
+        )

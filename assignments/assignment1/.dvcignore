@@ -1,0 +1,5 @@
+# Ignore intermediate experiment artefacts
+multirun/
+outputs/
+wandb/
+runs/

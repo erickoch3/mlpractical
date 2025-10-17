@@ -1,0 +1,8 @@
+stages:
+  synth_emnist:
+    cmd: python scripts/generate_synthetic_emnist.py --params params.yaml
+    deps:
+      - scripts/generate_synthetic_emnist.py
+      - params.yaml
+    outs:
+      - data/synthetic_emnist/raw

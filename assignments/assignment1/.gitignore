@@ -1,0 +1,31 @@
+# Hydra output directories
+multirun/
+outputs/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.log
+
+# Virtual envs
+.venv/
+.env
+
+# Data artifacts
+.data/
+data/
+writable/
+
+# DVC
+.dvc/
+*.dvc
+
+# WandB
+wandb/
+
+# TensorBoard
+runs/
+
+# Jupyter
+.ipynb_checkpoints/
+

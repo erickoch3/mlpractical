@@ -1,0 +1,18 @@
+defaults:
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+  - optional hydra/sweeper: optuna
+
+job:
+  name: ${experiment_name}
+
+run:
+  dir: ${oc.env:ASSIGNMENT1_OUTDIR,${hydra.cwd}/runs/${now:%Y-%m-%d_%H-%M-%S}}
+
+sweep:
+  dir: ${hydra.cwd}/multirun/${experiment_name}
+  subdir: ${hydra.job.num}_${now:%Y%m%d_%H%M%S}
+
+launcher:
+  timeout_min: 0
+

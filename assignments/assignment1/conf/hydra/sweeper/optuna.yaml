@@ -1,0 +1,9 @@
+sweeper:
+  sampler:
+    _target_: optuna.samplers.TPESampler
+    seed: ${training.seed}
+  direction: ${training.sweep.mode}
+  study_name: ${experiment_name}_optuna
+  storage: null
+  n_trials: 10
+  n_jobs: 1

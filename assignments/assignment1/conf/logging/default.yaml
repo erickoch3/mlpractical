@@ -1,0 +1,19 @@
+wandb:
+  enabled: true
+  project: mlp-coursework1
+  entity: null
+  tags: [emnist, hydra, coursework1]
+  log_model: false
+  mode: ${oc.env:WANDB_MODE,online}
+  watch:
+    log: gradients
+    log_freq: 100
+
+tensorboard:
+  enabled: true
+  log_dir: ${hydra:run.dir}/tensorboard
+
+matplotlib:
+  enabled: true
+  num_samples: 16
+  dpi: 200

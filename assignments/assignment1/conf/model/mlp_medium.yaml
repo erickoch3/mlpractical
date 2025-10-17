@@ -1,0 +1,8 @@
+name: mlp
+input_dim: 784
+num_classes: 47
+hidden_dims: [512, 512, 256]
+activation: relu
+activation_kwargs: {}
+dropout: 0.3
+weight_init: xavier_uniform

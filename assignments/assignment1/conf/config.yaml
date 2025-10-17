@@ -1,0 +1,10 @@
+defaults:
+  - data: emnist
+  - model: mlp_medium
+  - training: default
+  - logging: default
+  - hydra: default
+
+experiment_name: baseline_emnist
+seed: ${training.seed}
+

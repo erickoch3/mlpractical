@@ -8,26 +8,34 @@ outputs (and intermediate states) and for calculating gradients of scalar
 functions of the outputs with respect to the model parameters.
 """
 
-from mlp.layers import LayerWithParameters, StochasticLayer, StochasticLayerWithParameters
+from typing import List
+
+import numpy as np
+from numpy.typing import NDArray
+
+from mlp.layers import Layer, LayerWithParameters, StochasticLayerWithParameters
 
 
 class SingleLayerModel(object):
     """A model consisting of a single transformation layer."""
 
-    def __init__(self, layer):
+    def __init__(self, layer: LayerWithParameters) -> None:
         """Create a new single layer model instance.
 
         Args:
-            layer: The layer object defining the model architecture.
+            layer: The layer object defining the model architecture. This must
+                be a LayerWithParameters (or compatible) instance exposing
+                parameter-related methods such as `params` and
+                `grads_wrt_params`.
         """
         self.layer = layer
 
     @property
-    def params(self):
+    def params(self) -> List[NDArray[np.floating]]:
         """A list of all of the parameters of the model."""
         return self.layer.params
 
-    def fprop(self, inputs):
+    def fprop(self, inputs: NDArray[np.floating]) -> List[NDArray[np.floating]]:
         """Calculate the model outputs corresponding to a batch of inputs.
 
         Args:
@@ -43,15 +51,19 @@ class SingleLayerModel(object):
         activations = [inputs, self.layer.fprop(inputs)]
         return activations
 
-    def grads_wrt_params(self, activations, grads_wrt_outputs):
+    def grads_wrt_params(
+        self,
+        activations: List[NDArray[np.floating]],
+        grads_wrt_outputs: NDArray[np.floating],
+    ) -> List[NDArray[np.floating]]:
         """Calculates gradients with respect to the model parameters.
 
         Args:
             activations: List of all activations from forward pass through
                 model using `fprop`.
             grads_wrt_outputs: Gradient with respect to the model outputs of
-               the scalar function parameter gradients are being calculated
-               for.
+            the scalar function parameter gradients are being calculated
+            for.
 
         Returns:
             List of gradients of the scalar function with respect to all model
@@ -59,32 +71,36 @@ class SingleLayerModel(object):
         """
         return self.layer.grads_wrt_params(activations[0], grads_wrt_outputs)
 
-    def __repr__(self):
-        return 'SingleLayerModel(' + str(self.layer) + ')'
+    def __repr__(self) -> str:
+        return "SingleLayerModel(" + str(self.layer) + ")"
 
 
 class MultipleLayerModel(object):
     """A model consisting of multiple layers applied sequentially."""
 
-    def __init__(self, layers):
+    def __init__(self, layers: List[Layer]) -> None:
         """Create a new multiple layer model instance.
 
         Args:
-            layers: List of the the layer objecst defining the model in the
+            layers: List of the the layer object defining the model in the
                 order they should be applied from inputs to outputs.
         """
         self.layers = layers
 
     @property
-    def params(self):
+    def params(self) -> List[NDArray[np.floating]]:
         """A list of all of the parameters of the model."""
         params = []
         for layer in self.layers:
-            if isinstance(layer, LayerWithParameters) or isinstance(layer, StochasticLayerWithParameters):
+            if isinstance(layer, LayerWithParameters) or isinstance(
+                layer, StochasticLayerWithParameters
+            ):
                 params += layer.params
         return params
 
-    def fprop(self, inputs, evaluation=False):
+    def fprop(
+        self, inputs: NDArray[np.floating], evaluation: bool = False
+    ) -> List[NDArray[np.floating]]:
         """Forward propagates a batch of inputs through the model.
 
         Args:
@@ -96,31 +112,27 @@ class MultipleLayerModel(object):
             last element of the list corresponds to the model outputs.
         """
         activations = [inputs]
-        for i, layer in enumerate(self.layers):
+        for i, _ in enumerate(self.layers):
             if evaluation:
-                if issubclass(type(self.layers[i]), StochasticLayer) or issubclass(type(self.layers[i]),
-                                                                                   StochasticLayerWithParameters):
-                    current_activations = self.layers[i].fprop(activations[i], stochastic=False)
-                else:
-                    current_activations = self.layers[i].fprop(activations[i])
+                current_activations = self.layers[i].fprop(activations[i])
             else:
-                if issubclass(type(self.layers[i]), StochasticLayer) or issubclass(type(self.layers[i]),
-                                                                                   StochasticLayerWithParameters):
-                    current_activations = self.layers[i].fprop(activations[i], stochastic=True)
-                else:
-                    current_activations = self.layers[i].fprop(activations[i])
+                current_activations = self.layers[i].fprop(activations[i])
             activations.append(current_activations)
         return activations
 
-    def grads_wrt_params(self, activations, grads_wrt_outputs):
+    def grads_wrt_params(
+        self,
+        activations: List[NDArray[np.floating]],
+        grads_wrt_outputs: NDArray[np.floating],
+    ) -> List[NDArray[np.floating]]:
         """Calculates gradients with respect to the model parameters.
 
         Args:
             activations: List of all activations from forward pass through
                 model using `fprop`.
             grads_wrt_outputs: Gradient with respect to the model outputs of
-               the scalar function parameter gradients are being calculated
-               for.
+            the scalar function parameter gradients are being calculated
+            for.
 
         Returns:
             List of gradients of the scalar function with respect to all model
@@ -131,15 +143,18 @@ class MultipleLayerModel(object):
             inputs = activations[-i - 2]
             outputs = activations[-i - 1]
             grads_wrt_inputs = layer.bprop(inputs, outputs, grads_wrt_outputs)
-            if isinstance(layer, LayerWithParameters) or isinstance(layer, StochasticLayerWithParameters):
-                grads_wrt_params += layer.grads_wrt_params(
-                    inputs, grads_wrt_outputs)[::-1]
+            if isinstance(layer, LayerWithParameters) or isinstance(
+                layer, StochasticLayerWithParameters
+            ):
+                grads_wrt_params += layer.grads_wrt_params(inputs, grads_wrt_outputs)[
+                    ::-1
+                ]
             grads_wrt_outputs = grads_wrt_inputs
         return grads_wrt_params[::-1]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
-            'MultiLayerModel(\n    ' +
-            '\n    '.join([str(layer) for layer in self.layers]) +
-            '\n)'
+            "MultiLayerModel(\n    "
+            + "\n    ".join([str(layer) for layer in self.layers])
+            + "\n)"
         )

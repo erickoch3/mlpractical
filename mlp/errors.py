@@ -10,12 +10,13 @@ or batch.
 """
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 class SumOfSquaredDiffsError(object):
     """Sum of squared differences (squared Euclidean distance) error."""
 
-    def __call__(self, outputs, targets):
+    def __call__(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> np.floating:
         """Calculates error function given a batch of outputs and targets.
 
         Args:
@@ -27,7 +28,7 @@ class SumOfSquaredDiffsError(object):
         """
         return 0.5 * np.mean(np.sum((outputs - targets)**2, axis=1))
 
-    def grad(self, outputs, targets):
+    def grad(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> NDArray[np.floating]:
         """Calculates gradient of error function with respect to outputs.
 
         Args:
@@ -39,14 +40,14 @@ class SumOfSquaredDiffsError(object):
         """
         return (outputs - targets) / outputs.shape[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'MeanSquaredErrorCost'
 
 
 class BinaryCrossEntropyError(object):
     """Binary cross entropy error."""
 
-    def __call__(self, outputs, targets):
+    def __call__(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> np.floating:
         """Calculates error function given a batch of outputs and targets.
 
         Args:
@@ -59,7 +60,7 @@ class BinaryCrossEntropyError(object):
         return -np.mean(
             targets * np.log(outputs) + (1. - targets) * np.log(1. - ouputs))
 
-    def grad(self, outputs, targets):
+    def grad(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> NDArray[np.floating]:
         """Calculates gradient of error function with respect to outputs.
 
         Args:
@@ -72,14 +73,14 @@ class BinaryCrossEntropyError(object):
         return ((1. - targets) / (1. - outputs) -
                 (targets / outputs)) / outputs.shape[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'BinaryCrossEntropyError'
 
 
 class BinaryCrossEntropySigmoidError(object):
     """Binary cross entropy error with logistic sigmoid applied to outputs."""
 
-    def __call__(self, outputs, targets):
+    def __call__(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> np.floating:
         """Calculates error function given a batch of outputs and targets.
 
         Args:
@@ -93,7 +94,7 @@ class BinaryCrossEntropySigmoidError(object):
         return -np.mean(
             targets * np.log(probs) + (1. - targets) * np.log(1. - probs))
 
-    def grad(self, outputs, targets):
+    def grad(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> NDArray[np.floating]:
         """Calculates gradient of error function with respect to outputs.
 
         Args:
@@ -106,14 +107,14 @@ class BinaryCrossEntropySigmoidError(object):
         probs = 1. / (1. + np.exp(-outputs))
         return (probs - targets) / outputs.shape[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'BinaryCrossEntropySigmoidError'
 
 
 class CrossEntropyError(object):
     """Multi-class cross entropy error."""
 
-    def __call__(self, outputs, targets):
+    def __call__(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> np.floating:
         """Calculates error function given a batch of outputs and targets.
 
         Args:
@@ -125,7 +126,7 @@ class CrossEntropyError(object):
         """
         return -np.mean(np.sum(targets * np.log(outputs), axis=1))
 
-    def grad(self, outputs, targets):
+    def grad(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> NDArray[np.floating]:
         """Calculates gradient of error function with respect to outputs.
 
         Args:
@@ -137,14 +138,14 @@ class CrossEntropyError(object):
         """
         return -(targets / outputs) / outputs.shape[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'CrossEntropyError'
 
 
 class CrossEntropySoftmaxError(object):
     """Multi-class cross entropy error with Softmax applied to outputs."""
 
-    def __call__(self, outputs, targets):
+    def __call__(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> np.floating:
         """Calculates error function given a batch of outputs and targets.
 
         Args:
@@ -158,7 +159,7 @@ class CrossEntropySoftmaxError(object):
         logProb = normOutputs - np.log(np.sum(np.exp(normOutputs), axis=-1)[:, None])
         return -np.mean(np.sum(targets * logProb, axis=1))
 
-    def grad(self, outputs, targets):
+    def grad(self, outputs: NDArray[np.floating], targets: NDArray[np.floating]) -> NDArray[np.floating]:
         """Calculates gradient of error function with respect to outputs.
 
         Args:
@@ -172,5 +173,5 @@ class CrossEntropySoftmaxError(object):
         probs /= probs.sum(-1)[:, None]
         return (probs - targets) / outputs.shape[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'CrossEntropySoftmaxError'

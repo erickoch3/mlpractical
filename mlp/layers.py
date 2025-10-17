@@ -4,7 +4,7 @@
 This module defines classes which encapsulate a single layer.
 
 These layers map input activations to output activation with the `fprop`
-method and map gradients with repsect to outputs to gradients with respect to
+method and map gradients with respect to outputs to gradients with respect to
 their inputs with the `bprop` method.
 
 Some layers will have learnable parameters and so will additionally define
@@ -13,8 +13,10 @@ respect to the layer parameters.
 """
 
 import numpy as np
+
 import mlp.initialisers as init
 from mlp import DEFAULT_SEED
+
 
 class Layer(object):
     """Abstract class defining the interface for a layer."""
@@ -95,6 +97,7 @@ class LayerWithParameters(Layer):
         """
         raise NotImplementedError()
 
+
 class StochasticLayerWithParameters(Layer):
     """Specialised layer which uses a stochastic forward propagation."""
 
@@ -102,10 +105,10 @@ class StochasticLayerWithParameters(Layer):
         """Constructs a new StochasticLayer object.
 
         Args:
-            rng (RandomState): Seeded random number generator object.
+            rng (np.random.Generator): Seeded random number generator object.
         """
         if rng is None:
-            rng = np.random.RandomState(DEFAULT_SEED)
+            rng = np.random.default_rng(DEFAULT_SEED)
         self.rng = rng
 
     def fprop(self, inputs, stochastic=True):
@@ -124,6 +127,7 @@ class StochasticLayerWithParameters(Layer):
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
         raise NotImplementedError()
+
     def grads_wrt_params(self, inputs, grads_wrt_outputs):
         """Calculates gradients with respect to layer parameters.
 
@@ -166,6 +170,7 @@ class StochasticLayerWithParameters(Layer):
         """
         raise NotImplementedError()
 
+
 class StochasticLayer(Layer):
     """Specialised layer which uses a stochastic forward propagation."""
 
@@ -173,10 +178,10 @@ class StochasticLayer(Layer):
         """Constructs a new StochasticLayer object.
 
         Args:
-            rng (RandomState): Seeded random number generator object.
+            rng (np.random.Generator): Seeded random number generator object.
         """
         if rng is None:
-            rng = np.random.RandomState(DEFAULT_SEED)
+            rng = np.random.default_rng(DEFAULT_SEED)
         self.rng = rng
 
     def fprop(self, inputs, stochastic=True):
@@ -218,15 +223,20 @@ class StochasticLayer(Layer):
 
 
 class AffineLayer(LayerWithParameters):
-    """Layer implementing an affine tranformation of its inputs.
+    """Layer implementing an affine transformation of its inputs.
 
     This layer is parameterised by a weight matrix and bias vector.
     """
 
-    def __init__(self, input_dim, output_dim,
-                 weights_initialiser=init.UniformInit(-0.1, 0.1),
-                 biases_initialiser=init.ConstantInit(0.),
-                 weights_penalty=None, biases_penalty=None):
+    def __init__(
+        self,
+        input_dim,
+        output_dim,
+        weights_initialiser=init.UniformInit(-0.1, 0.1),
+        biases_initialiser=init.ConstantInit(0.0),
+        weights_penalty=None,
+        biases_penalty=None,
+    ):
         """Initialises a parameterised affine layer.
 
         Args:
@@ -326,8 +336,8 @@ class AffineLayer(LayerWithParameters):
         self.biases = values[1]
 
     def __repr__(self):
-        return 'AffineLayer(input_dim={0}, output_dim={1})'.format(
-            self.input_dim, self.output_dim)
+        return f"AffineLayer(input_dim={self.input_dim}, output_dim={self.output_dim})"
+
 
 class SigmoidLayer(Layer):
     """Layer implementing an element-wise logistic sigmoid transformation."""
@@ -347,7 +357,7 @@ class SigmoidLayer(Layer):
         Returns:
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
-        return 1 / (1. + np.exp(-inputs))
+        return 1 / (1.0 + np.exp(-inputs))
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -366,10 +376,11 @@ class SigmoidLayer(Layer):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        return  grads_wrt_outputs * outputs * (1. - outputs)
+        return grads_wrt_outputs * outputs * (1.0 - outputs)
 
     def __repr__(self):
-        return 'SigmoidLayer'
+        return "SigmoidLayer"
+
 
 class ReluLayer(Layer):
     """Layer implementing an element-wise rectified linear transformation."""
@@ -385,7 +396,7 @@ class ReluLayer(Layer):
         Returns:
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
-        return np.maximum(inputs, 0.)
+        return np.maximum(inputs, 0.0)
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -407,10 +418,12 @@ class ReluLayer(Layer):
         return (outputs > 0) * grads_wrt_outputs
 
     def __repr__(self):
-        return 'ReluLayer'
+        return "ReluLayer"
+
 
 class LeakyReluLayer(Layer):
     """Layer implementing an element-wise leaky rectified linear transformation."""
+
     def __init__(self, alpha=0.01):
         self.alpha = alpha
 
@@ -431,8 +444,7 @@ class LeakyReluLayer(Layer):
         raise NotImplementedError
 
     def __repr__(self):
-        return 'LeakyReluLayer'
-
+        return "LeakyReluLayer"
 
 
 class ParametricReluLayer(LayerWithParameters):
@@ -440,11 +452,6 @@ class ParametricReluLayer(LayerWithParameters):
 
     def __init__(self, alpha=0.25):
         self.alpha = np.array([alpha])
-
-    @property
-    def params(self):
-        """A list of layer parameter values: `[weights, biases]`."""
-        return [self.alpha]
 
     def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
@@ -485,7 +492,7 @@ class ParametricReluLayer(LayerWithParameters):
         self.alpha = values[0]
 
     def __repr__(self):
-        return 'ParametricReluLayer'
+        return "ParametricReluLayer"
 
 
 class TanhLayer(Layer):
@@ -521,10 +528,11 @@ class TanhLayer(Layer):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        return (1. - outputs**2) * grads_wrt_outputs
+        return (1.0 - outputs**2) * grads_wrt_outputs
 
     def __repr__(self):
-        return 'TanhLayer'
+        return "TanhLayer"
+
 
 class SoftmaxLayer(Layer):
     """Layer implementing a softmax transformation."""
@@ -564,18 +572,22 @@ class SoftmaxLayer(Layer):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        return (outputs * (grads_wrt_outputs -
-                           (grads_wrt_outputs * outputs).sum(-1)[:, None]))
+        return outputs * (
+            grads_wrt_outputs - (grads_wrt_outputs * outputs).sum(-1)[:, None]
+        )
 
     def __repr__(self):
-        return 'SoftmaxLayer'
-    
-    
-class CustomActivationLayer(Layer):
-    """Layer implementing a custom activation layer."""
+        return "SoftmaxLayer"
 
-    def __init__(self):
+
+class CustomActivationLayer(Layer):
+    """Layer implementing a custom activation layer.
+
+    This custom activation layer uses a sigmoid activation function"""
+
+    def __init__(self, gradient_scale=0.1):
         super().__init__()
+        self.gradient_scale = gradient_scale
 
     def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
@@ -585,7 +597,8 @@ class CustomActivationLayer(Layer):
         Returns:
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
-        return 1 / (10 * (1. + np.exp(-inputs)))
+        # return 1 / (10 * (1.0 + np.exp(-inputs)))
+        return 1 / ((1 / self.gradient_scale) * (1.0 + np.exp(-inputs)))
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -604,15 +617,17 @@ class CustomActivationLayer(Layer):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        return 0.1 * grads_wrt_outputs * outputs * (1. - outputs)
+        # return 0.1 * grads_wrt_outputs * outputs * (1.0 - outputs)
+        return self.gradient_scale * grads_wrt_outputs * outputs * (1.0 - outputs)
 
     def __repr__(self):
-        return 'CustomActivationLayer'
+        return "CustomActivationLayer"
+
 
 class RadialBasisFunctionLayer(Layer):
     """Layer implementing projection to a grid of radial basis functions."""
 
-    def __init__(self, grid_dim, intervals=[[0., 1.]]):
+    def __init__(self, grid_dim, intervals=[[0.0, 1.0]]):
         """Creates a radial basis function layer object.
 
         Args:
@@ -624,12 +639,16 @@ class RadialBasisFunctionLayer(Layer):
                 tile basis functions in grid across. For example for a 2D input
                 space spanning [0, 1] x [0, 1] use intervals=[[0, 1], [0, 1]].
         """
-        num_basis = grid_dim**len(intervals)
-        self.centres = np.array(np.meshgrid(*[
-            np.linspace(low, high, grid_dim) for (low, high) in intervals])
+        self.grid_dim = grid_dim
+        num_basis = grid_dim ** len(intervals)
+        self.centres = np.array(
+            np.meshgrid(
+                *[np.linspace(low, high, grid_dim) for (low, high) in intervals]
+            )
         ).reshape((len(intervals), -1))
-        self.scales = np.array([
-            [(high - low) * 1. / grid_dim] for (low, high) in intervals])
+        self.scales = np.array(
+            [[(high - low) * 1.0 / grid_dim] for (low, high) in intervals]
+        )
 
     def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
@@ -640,8 +659,9 @@ class RadialBasisFunctionLayer(Layer):
         Returns:
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
-        return np.exp(-(inputs[..., None] - self.centres[None, ...])**2 /
-                      self.scales**2).reshape((inputs.shape[0], -1))
+        return np.exp(
+            -((inputs[..., None] - self.centres[None, ...]) ** 2) / self.scales**2
+        ).reshape((inputs.shape[0], -1))
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -662,12 +682,13 @@ class RadialBasisFunctionLayer(Layer):
         """
         num_basis = self.centres.shape[1]
         return -2 * (
-            ((inputs[..., None] - self.centres[None, ...]) / self.scales**2) *
-            grads_wrt_outputs.reshape((inputs.shape[0], -1, num_basis))
+            ((inputs[..., None] - self.centres[None, ...]) / self.scales**2)
+            * grads_wrt_outputs.reshape((inputs.shape[0], -1, num_basis))
         ).sum(-1)
 
     def __repr__(self):
-        return 'RadialBasisFunctionLayer(grid_dim={0})'.format(self.grid_dim)
+        return f"RadialBasisFunctionLayer(grid_dim={self.grid_dim})"
+
 
 class DropoutLayer(StochasticLayer):
     """Layer which stochastically drops input dimensions in its output."""
@@ -683,7 +704,7 @@ class DropoutLayer(StochasticLayer):
                 all inputs in a batch or use per input masks.
         """
         super(DropoutLayer, self).__init__(rng)
-        assert incl_prob > 0. and incl_prob <= 1.
+        assert incl_prob > 0.0 and incl_prob <= 1.0
         self.incl_prob = incl_prob
         self.share_across_batch = share_across_batch
         self.rng = rng
@@ -726,7 +747,8 @@ class DropoutLayer(StochasticLayer):
         raise NotImplementedError
 
     def __repr__(self):
-        return 'DropoutLayer(incl_prob={0:.1f})'.format(self.incl_prob)
+        return f"DropoutLayer(incl_prob={round(self.incl_prob, 2)})"
+
 
 class ReshapeLayer(Layer):
     """Layer which reshapes dimensions of inputs."""
@@ -781,4 +803,4 @@ class ReshapeLayer(Layer):
         return grads_wrt_outputs.reshape(inputs.shape)
 
     def __repr__(self):
-        return 'ReshapeLayer(output_shape={0})'.format(self.output_shape)
+        return f"ReshapeLayer(output_shape={self.output_shape})"

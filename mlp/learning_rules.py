@@ -4,7 +4,9 @@
 This module contains classes implementing gradient based learning rules.
 """
 
+from typing import List
 import numpy as np
+from numpy.typing import NDArray
 
 
 class GradientDescentLearningRule(object):
@@ -25,7 +27,7 @@ class GradientDescentLearningRule(object):
     will correspond to a stochastic gradient descent learning rule.
     """
 
-    def __init__(self, learning_rate=1e-3):
+    def __init__(self, learning_rate: float = 1e-3) -> None:
         """Creates a new learning rule object.
 
         Args:
@@ -38,7 +40,7 @@ class GradientDescentLearningRule(object):
         assert learning_rate > 0., 'learning_rate should be positive.'
         self.learning_rate = learning_rate
 
-    def initialise(self, params):
+    def initialise(self, params: List[NDArray[np.floating]]) -> None:
         """Initialises the state of the learning rule for a set or parameters.
 
         This must be called before `update_params` is first called.
@@ -50,7 +52,7 @@ class GradientDescentLearningRule(object):
         """
         self.params = params
 
-    def reset(self):
+    def reset(self) -> None:
         """Resets any additional state variables to their intial values.
 
         For this learning rule there are no additional state variables so we
@@ -58,7 +60,7 @@ class GradientDescentLearningRule(object):
         """
         pass
 
-    def update_params(self, grads_wrt_params):
+    def update_params(self, grads_wrt_params: List[NDArray[np.floating]]) -> None:
         """Applies a single gradient descent update to all parameters.
 
         All parameter updates are performed using in-place operations and so
@@ -92,7 +94,7 @@ class MomentumLearningRule(GradientDescentLearningRule):
     is the system and so how quickly previous momentum contributions decay.
     """
 
-    def __init__(self, learning_rate=1e-3, mom_coeff=0.9):
+    def __init__(self, learning_rate: float = 1e-3, mom_coeff: float = 0.9) -> None:
         """Creates a new learning rule object.
 
         Args:
@@ -122,7 +124,7 @@ class MomentumLearningRule(GradientDescentLearningRule):
         )
         self.mom_coeff = mom_coeff
 
-    def initialise(self, params):
+    def initialise(self, params: List[NDArray[np.floating]]) -> None:
         """Initialises the state of the learning rule for a set or parameters.
 
         This must be called before `update_params` is first called.
@@ -137,7 +139,7 @@ class MomentumLearningRule(GradientDescentLearningRule):
         for param in self.params:
             self.moms.append(np.zeros_like(param))
 
-    def reset(self):
+    def reset(self) -> None:
         """Resets any additional state variables to their intial values.
 
         For this learning rule this corresponds to zeroing all the momenta.
@@ -145,7 +147,7 @@ class MomentumLearningRule(GradientDescentLearningRule):
         for mom in zip(self.moms):
             mom *= 0.
 
-    def update_params(self, grads_wrt_params):
+    def update_params(self, grads_wrt_params: List[NDArray[np.floating]]) -> None:
         """Applies a single update to all parameters.
 
         All parameter updates are performed using in-place operations and so
@@ -172,8 +174,8 @@ class AdamLearningRule(GradientDescentLearningRule):
            Kingma and Ba, 2015
     """
 
-    def __init__(self, learning_rate=1e-3, beta_1=0.9, beta_2=0.999,
-                 epsilon=1e-8):
+    def __init__(self, learning_rate: float = 1e-3, beta_1: float = 0.9, beta_2: float = 0.999,
+                 epsilon: float = 1e-8) -> None:
         """Creates a new learning rule object.
         Args:
             learning_rate: A postive scalar to scale gradient updates to the
@@ -204,7 +206,7 @@ class AdamLearningRule(GradientDescentLearningRule):
         self.beta_2 = beta_2
         self.epsilon = epsilon
 
-    def initialise(self, params):
+    def initialise(self, params: List[NDArray[np.floating]]) -> None:
         """Initialises the state of the learning rule for a set or parameters.
         This must be called before `update_params` is first called.
         Args:
@@ -221,7 +223,7 @@ class AdamLearningRule(GradientDescentLearningRule):
             self.moms_2.append(np.zeros_like(param))
         self.step_count = 0
 
-    def reset(self):
+    def reset(self) -> None:
         """Resets any additional state variables to their initial values.
         For this learning rule this corresponds to zeroing the estimates of
         the first and second moments of the gradients.
@@ -231,7 +233,7 @@ class AdamLearningRule(GradientDescentLearningRule):
             mom_2 *= 0.
         self.step_count = 0
 
-    def update_params(self, grads_wrt_params):
+    def update_params(self, grads_wrt_params: List[NDArray[np.floating]]) -> None:
         """Applies a single update to all parameters.
         All parameter updates are performed using in-place operations and so
         nothing is returned.
@@ -264,7 +266,7 @@ class AdaGradLearningRule(GradientDescentLearningRule):
            Optimization. Duchi, Haxan and Singer, 2011
     """
 
-    def __init__(self, learning_rate=1e-2, epsilon=1e-8):
+    def __init__(self, learning_rate: float = 1e-2, epsilon: float = 1e-8) -> None:
         """Creates a new learning rule object.
         Args:
             learning_rate: A postive scalar to scale gradient updates to the
@@ -279,7 +281,7 @@ class AdaGradLearningRule(GradientDescentLearningRule):
         assert epsilon > 0., 'epsilon should be > 0.'
         self.epsilon = epsilon
 
-    def initialise(self, params):
+    def initialise(self, params: List[NDArray[np.floating]]) -> None:
         """Initialises the state of the learning rule for a set or parameters.
         This must be called before `update_params` is first called.
         Args:
@@ -292,7 +294,7 @@ class AdaGradLearningRule(GradientDescentLearningRule):
         for param in self.params:
             self.sum_sq_grads.append(np.zeros_like(param))
 
-    def reset(self):
+    def reset(self) -> None:
         """Resets any additional state variables to their initial values.
         For this learning rule this corresponds to zeroing all the sum of
         squared gradient states.
@@ -300,7 +302,7 @@ class AdaGradLearningRule(GradientDescentLearningRule):
         for sum_sq_grad in self.sum_sq_grads:
             sum_sq_grad *= 0.
 
-    def update_params(self, grads_wrt_params):
+    def update_params(self, grads_wrt_params: List[NDArray[np.floating]]) -> None:
         """Applies a single update to all parameters.
         All parameter updates are performed using in-place operations and so
         nothing is returned.

@@ -6,13 +6,14 @@ evolution of learning rule hyperparameters (such as learning rate) over a
 training run.
 """
 
+from typing import Any
 import numpy as np
 
 
 class ConstantLearningRateScheduler(object):
     """Example of scheduler interface which sets a constant learning rate."""
 
-    def __init__(self, learning_rate):
+    def __init__(self, learning_rate: float) -> None:
         """Construct a new constant learning rate scheduler object.
 
         Args:
@@ -20,7 +21,7 @@ class ConstantLearningRateScheduler(object):
         """
         self.learning_rate = learning_rate
 
-    def update_learning_rule(self, learning_rule, epoch_number):
+    def update_learning_rule(self, learning_rule: Any, epoch_number: int) -> None:
         """Update the hyperparameters of the learning rule.
 
         Run at the beginning of each epoch.
@@ -36,8 +37,8 @@ class ConstantLearningRateScheduler(object):
 class CosineAnnealingWithWarmRestarts(object):
     """Cosine annealing scheduler, implemented as in https://arxiv.org/pdf/1608.03983.pdf"""
 
-    def __init__(self, min_learning_rate, max_learning_rate, total_iters_per_period, max_learning_rate_discount_factor,
-                 period_iteration_expansion_factor):
+    def __init__(self, min_learning_rate: float, max_learning_rate: float, total_iters_per_period: int, max_learning_rate_discount_factor: float,
+                 period_iteration_expansion_factor: float) -> None:
         """
         Instantiates a new cosine annealing with warm restarts learning rate scheduler
         :param min_learning_rate: The minimum learning rate the scheduler can assign
@@ -54,7 +55,7 @@ class CosineAnnealingWithWarmRestarts(object):
         self.period_iteration_expansion_factor = period_iteration_expansion_factor
 
 
-    def update_learning_rule(self, learning_rule, epoch_number):
+    def update_learning_rule(self, learning_rule: Any, epoch_number: int) -> None:
         """Update the hyperparameters of the learning rule.
 
         Run at the beginning of each epoch.

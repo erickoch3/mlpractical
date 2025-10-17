@@ -1,0 +1,12 @@
+synth_emnist:
+  seed: 123
+  raw_root: "~/.cache/torch/datasets"
+  output_dir: "data/synthetic_emnist/raw"
+  download: true
+  num_samples_per_class: 500
+  variants_per_sample: 2
+  transforms:
+    rotation: 15
+    translate: 3
+    shear: 10
+    gaussian_noise: 0.05
